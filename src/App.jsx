@@ -12,6 +12,7 @@ function App() {
           Name: Lawrenz Flores <br />
           Email: lawrenz.flores@up.edu.ph <br />
           Age: 21 <br />
+          <a href="https://github.com/FloWers0930"> Github</a>
         </p>
       </header>
     </div>
