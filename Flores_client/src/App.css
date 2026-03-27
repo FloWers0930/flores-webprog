@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Your custom styles below */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --border: #d8d5ce;
+  --border-dark: #1a1a18;
+  --text-primary: #1a1a18;
+  --text-secondary: #6b6860;
+  --text-muted: #9b9890;
+  --accent: #1a1a18;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
