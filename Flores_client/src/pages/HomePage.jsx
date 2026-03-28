@@ -70,11 +70,6 @@ function HomePage() {
       <section className="border-b-[1.5px] border-[#1a1a18] py-16 px-12 lg:px-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-[1400px] mx-auto">
           <div>
-            <div className="inline-block mb-4 px-3 py-1 border border-[#d8d5ce] rounded-full">
-              <span className="text-[10px] font-medium tracking-[0.16em] uppercase text-[#9b9890]">
-                Hero Section
-              </span>
-            </div>
             <h1 className="font-[Syne] text-[52px] lg:text-[64px] font-extrabold leading-[1.05] tracking-tight mb-6">
               Welcome to <span className="text-[#6b6860]">Wireframe</span> Studio Layout
             </h1>
@@ -95,9 +90,6 @@ function HomePage() {
               alt="Wireframe studio workspace"
               className="w-full h-full object-cover"
             />
-            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md border border-[#1a1a18]">
-              <span className="text-[10px] font-semibold tracking-[0.1em] uppercase">Studio V.2.0</span>
-            </div>
           </div>
         </div>
       </section>
@@ -107,9 +99,6 @@ function HomePage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[#9b9890] mb-2">
-                KPI Section
-              </p>
               <h2 className="font-[Syne] text-xl font-bold">
                 Quick overview blocks
               </h2>
@@ -130,9 +119,6 @@ function HomePage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[#9b9890] mb-2">
-                Feature Cards
-              </p>
               <h2 className="font-[Syne] text-xl font-bold">
                 Simple wireframe cards
               </h2>

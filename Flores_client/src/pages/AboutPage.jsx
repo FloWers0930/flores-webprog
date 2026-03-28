@@ -40,9 +40,6 @@ function AboutPage() {
       {/* About Hero - Full Width */}
       <section className="border-b-[1.5px] border-[#1a1a18] py-16 px-12 lg:px-24">
         <div className="max-w-[1400px] mx-auto">
-          <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[#9b9890] mb-4">
-            About
-          </p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <div>
               <h1 className="font-[Syne] text-[48px] lg:text-[56px] font-extrabold leading-[1.1] mb-6">
@@ -97,9 +94,6 @@ function AboutPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <p className="text-[10px] font-medium tracking-[0.16em] uppercase text-[#9b9890] mb-2">
-                By the Numbers
-              </p>
               <h2 className="font-[Syne] text-xl font-bold">
                 What we've shipped
               </h2>
