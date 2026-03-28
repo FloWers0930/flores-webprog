@@ -8,14 +8,15 @@
 }
 
 :root {
-  --bg: #f5f4f0;
+  /* Terracotta Warm Palette */
+  --bg: #faf8f5;
   --surface: #ffffff;
-  --border: #d8d5ce;
-  --border-dark: #1a1a18;
-  --text-primary: #1a1a18;
-  --text-secondary: #6b6860;
-  --text-muted: #9b9890;
-  --accent: #1a1a18;
+  --border: #e0d5c8;
+  --border-dark: #c4a484;
+  --text-primary: #a08060;
+  --text-secondary: #b09070;
+  --text-muted: #c4b090;
+  --accent: #c4a484;
 }
 
 body {

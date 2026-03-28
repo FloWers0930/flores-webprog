@@ -6,7 +6,7 @@ function Navbar() {
     "font-['DM_Sans'] text-[11px] font-medium tracking-[0.12em] uppercase px-3.5 py-1.5 rounded-full transition-all duration-200";
 
   return (
-    <nav className="w-full bg-white border-b-[1.5px] border-[#1a1a18] sticky top-0 z-50">
+    <nav className="w-full bg-white border-b-[1.5px] border-[#4a5c4a] sticky top-0 z-50">
       <div className="max-w-[1400px] mx-auto px-12 lg:px-24 h-16 flex items-center justify-between">
         <NavLink to="/" className="no-underline">
           <Logo />
@@ -17,7 +17,7 @@ function Navbar() {
             to="/"
             end
             className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#1a1a18] text-white" : "text-[#6b6860] hover:text-[#1a1a18]"}`
+              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
             }
           >
             Home
@@ -25,7 +25,7 @@ function Navbar() {
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#1a1a18] text-white" : "text-[#6b6860] hover:text-[#1a1a18]"}`
+              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
             }
           >
             About
@@ -33,7 +33,7 @@ function Navbar() {
           <NavLink
             to="/articles"
             className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#1a1a18] text-white" : "text-[#6b6860] hover:text-[#1a1a18]"}`
+              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
             }
           >
             Articles
