@@ -1,43 +1,49 @@
-import { NavLink } from "react-router-dom";
-import Logo from "../Components/Logo";
+// src/components/Navbar.jsx
+import { Link, useLocation } from "react-router-dom";
 
 function Navbar() {
-  const linkBaseClasses =
-    "font-['DM_Sans'] text-[11px] font-medium tracking-[0.12em] uppercase px-3.5 py-1.5 rounded-full transition-all duration-200";
+  const location = useLocation();
+
+  const isActive = (path) => {
+    if (path === "/articles" && location.pathname.startsWith("/articles")) {
+      return "text-[#2a3a2a] font-medium";
+    }
+    return location.pathname === path
+      ? "text-[#2a3a2a] font-medium"
+      : "text-[#6a7a6a] hover:text-[#2a3a2a]";
+  };
 
   return (
-    <nav className="w-full bg-white border-b-[1.5px] border-[#4a5c4a] sticky top-0 z-50">
-      <div className="max-w-[1400px] mx-auto px-12 lg:px-24 h-16 flex items-center justify-between">
-        <NavLink to="/" className="no-underline">
-          <Logo />
-        </NavLink>
+    <nav className="w-full px-12 lg:px-24 py-6 border-b-[1.5px] border-[#c5d0c5] bg-[#f8f9f5]">
+      <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-full bg-[#c5d0c5] flex items-center justify-center group-hover:bg-[#8a9a8a] transition-colors">
+            <div className="w-3 h-3 bg-[#f8f9f5] rounded-sm" />
+          </div>
+          <span className="text-[13px] font-medium tracking-[0.08em] text-[#2a3a2a] uppercase">
+            Flores Studio
+          </span>
+        </Link>
 
-        <div className="flex items-center gap-2">
-          <NavLink
+        <div className="flex items-center gap-8">
+          <Link
             to="/"
-            end
-            className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
-            }
+            className={`text-[12px] tracking-[0.06em] uppercase transition-colors ${isActive("/")}`}
           >
             Home
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/about"
-            className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
-            }
+            className={`text-[12px] tracking-[0.06em] uppercase transition-colors ${isActive("/about")}`}
           >
             About
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/articles"
-            className={({ isActive }) =>
-              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
-            }
+            className={`text-[12px] tracking-[0.06em] uppercase transition-colors ${isActive("/articles")}`}
           >
             Articles
-          </NavLink>
+          </Link>
         </div>
       </div>
     </nav>

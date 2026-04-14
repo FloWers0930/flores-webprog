@@ -1,3 +1,4 @@
+// src/components/Layout.jsx (Your version - preserved)
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 

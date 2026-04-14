@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 /* Your custom styles below */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -22,6 +24,6 @@
 body {
   background: var(--bg);
   color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: "DM Sans", sans-serif;
   min-height: 100vh;
 }
