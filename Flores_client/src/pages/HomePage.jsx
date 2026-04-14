@@ -1,31 +1,25 @@
-import Button from "../Components/Button";
+import Button from '../Components/Button'
 
 const features = [
   {
-    tag: "Design",
-    title: "Intuitive Layouts",
-    description:
-      "Smartly structured interfaces that drive clarity, efficiency, and engagement across every platform.",
-    image:
-      "https://cdn.dribbble.com/userupload/44712879/file/a9dbd808b2215a0c4e2bff39174d1dfe.png?resize=1504x1128&vertical=center",
+    tag: 'Design',
+    title: 'Intuitive Layouts',
+    description: 'Smartly structured interfaces that drive clarity, efficiency, and engagement across every platform.',
+    image: 'https://cdn.dribbble.com/userupload/44712879/file/a9dbd808b2215a0c4e2bff39174d1dfe.png?resize=1504x1128&vertical=center'
   },
   {
-    tag: "Components",
-    title: "Reusable Modules",
-    description:
-      "Highly scalable components that maintain consistency and speed up development cycles.",
-    image:
-      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop",
+    tag: 'Components',
+    title: 'Reusable Modules',
+    description: 'Highly scalable components that maintain consistency and speed up development cycles.',
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop'
   },
   {
-    tag: "Workflow",
-    title: "Rapid Prototyping",
-    description:
-      "Transform ideas into interactive prototypes with minimal friction and maximum impact.",
-    image:
-      "https://public-images.interaction-design.org/tags/td-prototyping-02.webp",
-  },
-];
+    tag: 'Workflow',
+    title: 'Rapid Prototyping',
+    description: 'Transform ideas into interactive prototypes with minimal friction and maximum impact.',
+    image: 'https://public-images.interaction-design.org/tags/td-prototyping-02.webp'
+  }
+]
 
 function KpiCard({ number, label }) {
   return (
@@ -37,15 +31,15 @@ function KpiCard({ number, label }) {
         {label}
       </div>
     </div>
-  );
+  )
 }
 
 function FeatureCard({ tag, title, description, image }) {
   return (
     <article className="group border-[1.5px] border-[#4a5c4a] rounded-md bg-white overflow-hidden flex flex-col h-full hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(74,92,74,1)] transition-all duration-200">
       <div className="h-[180px] overflow-hidden relative">
-        <img
-          src={image}
+        <img 
+          src={image} 
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -62,14 +56,11 @@ function FeatureCard({ tag, title, description, image }) {
           {description}
         </p>
         <div className="mt-4 pt-4 border-t border-[#c5d0c5] flex items-center gap-2 text-[10px] font-semibold tracking-[0.12em] uppercase text-[#8a9a8a] group-hover:text-[#4a5c4a] transition-colors">
-          Learn More{" "}
-          <span className="group-hover:translate-x-1 transition-transform">
-            →
-          </span>
+          Learn More <span className="group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </div>
     </article>
-  );
+  )
 }
 
 function HomePage() {
@@ -83,9 +74,7 @@ function HomePage() {
               Elevate <span className="text-[#8a9a8a]">Your Interfaces</span>
             </h1>
             <p className="text-base leading-relaxed text-[#6b7b6b] max-w-[480px] mb-8">
-              Professional-grade UI systems designed for startups, enterprises,
-              and ambitious teams seeking clarity, speed, and scalability in
-              every project.
+              Professional-grade UI systems designed for startups, enterprises, and ambitious teams seeking clarity, speed, and scalability in every project.
             </p>
             <div className="flex gap-3">
               <button className="font-['DM_Sans'] text-[11px] font-semibold tracking-[0.12em] uppercase px-5 py-2.5 bg-[#4a5c4a] text-white border-[1.5px] border-[#4a5c4a] rounded-full cursor-pointer transition-all duration-200 hover:bg-[#f8f9f5] hover:text-[#4a5c4a]">
@@ -98,8 +87,8 @@ function HomePage() {
           </div>
 
           <div className="relative aspect-[16/10] rounded-lg overflow-hidden border-[1.5px] border-[#4a5c4a]">
-            <img
-              src="https://wallpapersok.com/images/high/a-professional-business-workspace-jsfw4k7qst552ktt.webp"
+            <img 
+              src="https://wallpapersok.com/images/high/a-professional-business-workspace-jsfw4k7qst552ktt.webp" 
               alt="Professional UI Workspace"
               className="w-full h-full object-cover"
             />
@@ -116,9 +105,7 @@ function HomePage() {
                 Our Impact
               </h2>
             </div>
-            <span className="text-[10px] text-[#8a9a8a] tracking-[0.1em] uppercase">
-              Latest Metrics
-            </span>
+            <span className="text-[10px] text-[#8a9a8a] tracking-[0.1em] uppercase">Latest Metrics</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KpiCard number="120+" label="Projects Delivered" />
@@ -150,7 +137,7 @@ function HomePage() {
         </div>
       </section>
     </main>
-  );
+  )
 }
 
-export default HomePage;
+export default HomePage
