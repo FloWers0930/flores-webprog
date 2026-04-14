@@ -1,6 +1,6 @@
 // src/pages/ArticleListPage.jsx
 import Button from "../components/Button";
-import ArticleList from "../components/ArticleList";
+import ArticleList from "../Components/ArticleList";
 import articles from "../assets/article-content.js";
 import { Link } from "react-router-dom";
 

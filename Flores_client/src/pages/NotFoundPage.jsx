@@ -1,6 +1,6 @@
 // src/pages/NotFoundPage.jsx
 import { Link, useRouteError } from "react-router-dom";
-import Button from "../components/Button";
+import Button from "../Components/Button";
 
 function NotFoundPage() {
   const error = useRouteError();

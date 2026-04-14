@@ -1,6 +1,6 @@
 // src/pages/ArticlePage.jsx
 import { useParams, Link } from "react-router-dom";
-import Button from "../components/Button";
+import Button from "../Components/Button";
 import articles from "../assets/article-content.js";
 
 function ArticlePage() {
