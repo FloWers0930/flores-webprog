@@ -20,7 +20,7 @@ const routes = [
       },
       {
         path: "/about",
-        element: <AboutPage />,
+        element: <AboutPage />, // Make sure this is correct
       },
       {
         path: "/articles",
