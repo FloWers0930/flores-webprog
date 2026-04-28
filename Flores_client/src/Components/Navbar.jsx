@@ -40,6 +40,16 @@ function Navbar() {
             Articles
           </NavLink>
 
+          {/* Dashboard Link - Styled in main color */}
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `${linkBaseClasses} ${isActive ? "bg-[#4a5c4a] text-white" : "text-[#6b7b6b] hover:text-[#4a5c4a]"}`
+            }
+          >
+            Dashboard
+          </NavLink>
+
           {/* Divider */}
           <div className="h-6 w-[1.5px] bg-[#c5d0c5] mx-2" />
 
