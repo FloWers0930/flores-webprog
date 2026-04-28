@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import Logo from "../Components/Logo";
+import Button from "../Components/Button";
 
 function Navbar() {
   const linkBaseClasses =
@@ -38,6 +39,25 @@ function Navbar() {
           >
             Articles
           </NavLink>
+
+          {/* Divider */}
+          <div className="h-6 w-[1.5px] bg-[#c5d0c5] mx-2" />
+
+          {/* Auth Buttons - Enhancement 3 */}
+          <Button
+            to="/auth/signin"
+            variant="secondary"
+            className="!px-4 !py-1.5 !text-[10px] !tracking-[0.1em]"
+          >
+            Log In
+          </Button>
+          <Button
+            to="/auth/signup"
+            variant="primary"
+            className="!px-4 !py-1.5 !text-[10px] !tracking-[0.1em]"
+          >
+            Sign Up
+          </Button>
         </div>
       </div>
     </nav>

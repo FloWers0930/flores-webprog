@@ -1,10 +1,10 @@
-// src/components/Button.jsx
 import { Link } from "react-router-dom";
 
 function Button({
   children,
   to,
   onClick,
+  type = "button",
   className = "",
   variant = "primary",
 }) {
@@ -30,7 +30,7 @@ function Button({
   }
 
   return (
-    <button onClick={onClick} className={combinedStyles}>
+    <button type={type} onClick={onClick} className={combinedStyles}>
       {children}
     </button>
   );
