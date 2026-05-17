@@ -12,7 +12,9 @@ import DashLayout from "./layouts/DashLayout";
 import DashboardPage from "./pages/DashboardPages/DashboardPage";
 import ReportsPage from "./pages/DashboardPages/ReportsPage";
 import UsersPage from "./pages/DashboardPages/UsersPage";
+import DashArticleListPage from "./pages/DashboardPages/DashArticleListPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute"; // ← Import this
 
 const routes = [
   {
@@ -42,7 +44,19 @@ const routes = [
     children: [
       { path: "", element: <DashboardPage /> },
       { path: "reports", element: <ReportsPage /> },
-      { path: "users", element: <UsersPage /> },
+
+      // ✅ Protected: Only Admin can access UsersPage
+      {
+        path: "users",
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <UsersPage />
+          </ProtectedRoute>
+        ),
+      },
+
+      // Articles - Editors and Admins can access
+      { path: "articles", element: <DashArticleListPage /> },
     ],
   },
 ];

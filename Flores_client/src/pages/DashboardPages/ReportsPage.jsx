@@ -6,11 +6,30 @@ import {
   Button,
   Card,
   CardContent,
+  Paper,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { Gauge } from "@mui/x-charts/Gauge";
 import { DataGrid } from "@mui/x-data-grid";
+import DownloadIcon from "@mui/icons-material/Download";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import AddIcon from "@mui/icons-material/Add";
+
+const colors = {
+  bg: "#F5F5F0",
+  surface: "#FFFFFF",
+  primary: "#4A5D4E",
+  primaryLight: "#5A6D5E",
+  text: "#2C3E2D",
+  textMuted: "#6B7B6D",
+  border: "#D4D8D4",
+  hover: "#E8EBE8",
+  chartBlue: "#4A5D4E",
+  chartOrange: "#C4A35A",
+  chartRed: "#B85C5C",
+  chartGreen: "#6B8E6B",
+};
 
 const ReportsPage = () => {
   const printRef = useRef(null);
@@ -109,15 +128,15 @@ const ReportsPage = () => {
 
   // Sample data for charts
   const barData = [
-    { data: [18, 24, 20, 27], label: "Generated" },
-    { data: [12, 19, 17, 23], label: "Completed" },
+    { data: [18, 24, 20, 27], label: "Generated", color: colors.chartBlue },
+    { data: [12, 19, 17, 23], label: "Completed", color: colors.chartOrange },
   ];
 
   const pieData = [
-    { id: 0, value: 14, label: "Sales" },
-    { id: 1, value: 10, label: "Users" },
-    { id: 2, value: 8, label: "Inventory" },
-    { id: 3, value: 6, label: "Finance" },
+    { id: 0, value: 14, label: "Sales", color: colors.chartBlue },
+    { id: 1, value: 10, label: "Users", color: colors.chartOrange },
+    { id: 2, value: 8, label: "Inventory", color: colors.chartRed },
+    { id: 3, value: 6, label: "Finance", color: colors.chartGreen },
   ];
 
   const columns = [
@@ -168,6 +187,7 @@ const ReportsPage = () => {
 
   return (
     <Box>
+      {/* Header Section */}
       <Stack
         direction={{ xs: "column", md: "row" }}
         justifyContent="space-between"
@@ -176,73 +196,244 @@ const ReportsPage = () => {
         sx={{ mb: 4 }}
       >
         <Box>
-          <Typography variant="h4" gutterBottom>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              color: colors.text,
+              letterSpacing: "-0.02em",
+              fontSize: { xs: "1.75rem", md: "2.125rem" },
+            }}
+          >
             Reports
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography
+            variant="body1"
+            sx={{
+              color: colors.textMuted,
+              fontSize: "0.9375rem",
+              lineHeight: 1.6,
+            }}
+          >
             Report analytics overview showing generated reports, category
             breakdown, and current completion performance.
           </Typography>
         </Box>
         <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-          <Button variant="contained">Generate</Button>
-          <Button variant="outlined" onClick={handlePrint}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              bgcolor: colors.primary,
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 500,
+              px: 2.5,
+              py: 1,
+              "&:hover": {
+                bgcolor: colors.primaryLight,
+              },
+            }}
+          >
+            Generate
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handlePrint}
+            startIcon={<DownloadIcon />}
+            sx={{
+              color: colors.primary,
+              borderColor: colors.border,
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 500,
+              px: 2.5,
+              py: 1,
+              "&:hover": {
+                borderColor: colors.primary,
+                bgcolor: colors.hover,
+              },
+            }}
+          >
             Export
           </Button>
-          <Button variant="outlined">Filter</Button>
+          <Button
+            variant="outlined"
+            startIcon={<FilterListIcon />}
+            sx={{
+              color: colors.primary,
+              borderColor: colors.border,
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 500,
+              px: 2.5,
+              py: 1,
+              "&:hover": {
+                borderColor: colors.primary,
+                bgcolor: colors.hover,
+              },
+            }}
+          >
+            Filter
+          </Button>
         </Stack>
       </Stack>
 
+      {/* Charts Section */}
       <Stack ref={printRef} spacing={3}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
+        {/* Monthly Report Output */}
+        <Card
+          sx={{
+            borderRadius: "16px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            border: `1px solid ${colors.border}`,
+            bgcolor: colors.surface,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                fontWeight: 600,
+                color: colors.text,
+                fontSize: "1.125rem",
+                mb: 1,
+              }}
+            >
               Monthly Report Output
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: colors.textMuted,
+                mb: 3,
+                fontSize: "0.875rem",
+                lineHeight: 1.6,
+              }}
+            >
               This chart compares how many reports were generated and how many
               were completed across the last four months.
             </Typography>
-            <BarChart
-              series={barData}
-              height={300}
-              xAxis={[
-                {
-                  data: ["January", "February", "March", "April"],
-                  scaleType: "band",
-                  label: "Months",
-                },
-              ]}
-            />
+            <Box sx={{ width: "100%", overflow: "hidden" }}>
+              <BarChart
+                series={barData}
+                height={300}
+                xAxis={[
+                  {
+                    data: ["January", "February", "March", "April"],
+                    scaleType: "band",
+                    label: "Months",
+                  },
+                ]}
+                colors={[colors.chartBlue, colors.chartOrange]}
+                sx={{
+                  "& .MuiChartsAxis-tickLabel": {
+                    fill: colors.textMuted,
+                    fontSize: "0.75rem",
+                  },
+                }}
+              />
+            </Box>
           </CardContent>
         </Card>
 
+        {/* Pie Chart and Gauge Row */}
         <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+          {/* Report Category Share */}
+          <Card
+            sx={{
+              flex: 1,
+              borderRadius: "16px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              border: `1px solid ${colors.border}`,
+              bgcolor: colors.surface,
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{
+                  fontWeight: 600,
+                  color: colors.text,
+                  fontSize: "1.125rem",
+                  mb: 1,
+                }}
+              >
                 Report Category Share
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: colors.textMuted,
+                  mb: 3,
+                  fontSize: "0.875rem",
+                  lineHeight: 1.6,
+                }}
+              >
                 This chart shows the distribution of report requests by category
                 for the current reporting period.
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 <PieChart
-                  series={[{ data: pieData }]}
+                  series={[
+                    {
+                      data: pieData,
+                      highlightScope: { faded: "global", highlighted: "item" },
+                      faded: {
+                        innerRadius: 30,
+                        additionalRadius: -30,
+                        color: "gray",
+                      },
+                    },
+                  ]}
                   width={280}
                   height={220}
+                  colors={[
+                    colors.chartBlue,
+                    colors.chartOrange,
+                    colors.chartRed,
+                    colors.chartGreen,
+                  ]}
                 />
               </Box>
             </CardContent>
           </Card>
 
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+          {/* Completion Rate */}
+          <Card
+            sx={{
+              flex: 1,
+              borderRadius: "16px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              border: `1px solid ${colors.border}`,
+              bgcolor: colors.surface,
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{
+                  fontWeight: 600,
+                  color: colors.text,
+                  fontSize: "1.125rem",
+                  mb: 1,
+                }}
+              >
                 Completion Rate
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: colors.textMuted,
+                  mb: 3,
+                  fontSize: "0.875rem",
+                  lineHeight: 1.6,
+                }}
+              >
                 The gauge highlights the current percentage of reports completed
                 on time based on the latest reporting cycle.
               </Typography>
@@ -254,14 +445,47 @@ const ReportsPage = () => {
                   justifyContent: "center",
                 }}
               >
-                <Gauge width={180} height={180} value={78} />
+                <Gauge
+                  width={180}
+                  height={180}
+                  value={78}
+                  sx={{
+                    "& .MuiGauge-valueText": {
+                      fontSize: "1.5rem",
+                      fontWeight: 700,
+                      fill: colors.text,
+                    },
+                  }}
+                />
               </Box>
             </CardContent>
           </Card>
         </Stack>
 
-        <Card>
-          <CardContent>
+        {/* Data Table */}
+        <Card
+          sx={{
+            borderRadius: "16px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            border: `1px solid ${colors.border}`,
+            bgcolor: colors.surface,
+            overflow: "hidden",
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
+            <Box sx={{ p: 3, pb: 0 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{
+                  fontWeight: 600,
+                  color: colors.text,
+                  fontSize: "1.125rem",
+                }}
+              >
+                Recent Reports
+              </Typography>
+            </Box>
             <DataGrid
               rows={rows}
               columns={columns}
@@ -273,6 +497,29 @@ const ReportsPage = () => {
               pageSizeOptions={[5]}
               checkboxSelection
               disableRowSelectionOnClick
+              sx={{
+                border: "none",
+                "& .MuiDataGrid-cell": {
+                  borderBottom: `1px solid ${colors.border}`,
+                  color: colors.text,
+                },
+                "& .MuiDataGrid-columnHeaders": {
+                  bgcolor: colors.bg,
+                  borderBottom: `1px solid ${colors.border}`,
+                  color: colors.text,
+                  fontWeight: 600,
+                },
+                "& .MuiDataGrid-footerContainer": {
+                  borderTop: `1px solid ${colors.border}`,
+                  bgcolor: colors.bg,
+                },
+                "& .MuiCheckbox-root.Mui-checked": {
+                  color: colors.primary,
+                },
+                "& .MuiDataGrid-row:hover": {
+                  bgcolor: colors.hover,
+                },
+              }}
             />
           </CardContent>
         </Card>

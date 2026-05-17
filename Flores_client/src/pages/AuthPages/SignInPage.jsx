@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
+import { loginUser } from "../../services/UserService";
 
 const inputClasses =
   "mt-2 w-full rounded-full border border-[#c5d0c5] bg-[#f8f9f5] px-5 py-3 text-sm text-[#2a3a2a] outline-none transition placeholder:text-[#a5b5a5] focus:border-[#2a3a2a] focus:bg-white";
@@ -8,11 +10,45 @@ const actionButtonClassName = "w-full py-3.5 text-[11px] tracking-[0.15em]";
 
 const SignInPage = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // After successful sign in, redirect to home
-    navigate("/");
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await loginUser({ email, password });
+
+      // Save authentication data
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userType", response.data.type);
+      localStorage.setItem("firstName", response.data.firstName);
+
+      alert(`Login successful! Welcome, ${response.data.firstName} 🎉`);
+
+      // Role-based redirection (Enhancement 1)
+      if (response.data.type === "admin") {
+        navigate("/users"); // Only Admin can go to UsersPage
+      } else {
+        navigate("/dashboard"); // Editors go to Dashboard
+      }
+    } catch (err) {
+      console.error(err);
+      const errorMessage =
+        err.response?.data?.message || "Invalid email or password";
+      setError(errorMessage);
+
+      // Optional: Clear fields on certain errors
+      if (errorMessage.includes("Viewer")) {
+        setPassword(""); // Clear password for security
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,6 +60,12 @@ const SignInPage = () => {
         Access your account using the same wireframe language used across the
         site.
       </p>
+
+      {error && (
+        <p className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
+          {error}
+        </p>
+      )}
 
       <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
         {/* Email */}
@@ -39,7 +81,10 @@ const SignInPage = () => {
             type="email"
             placeholder="Placeholder"
             autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className={inputClasses}
+            required
           />
         </div>
 
@@ -56,7 +101,10 @@ const SignInPage = () => {
             type="password"
             placeholder="Placeholder"
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className={inputClasses}
+            required
           />
           <p className="mt-2 text-xs leading-5 text-[#8a9a8a]">
             It must be a combination of minimum 8 letters, numbers, and symbols.
@@ -81,8 +129,13 @@ const SignInPage = () => {
         </div>
 
         {/* Submit */}
-        <Button type="submit" variant="dark" className={actionButtonClassName}>
-          Log In
+        <Button
+          type="submit"
+          variant="dark"
+          className={actionButtonClassName}
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log In"}
         </Button>
 
         {/* Social Login */}
