@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { DataGrid } from "@mui/x-data-grid";
@@ -7,52 +7,104 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+import { fetchUsers } from "../../services/UserService";
 
 const columns = [
-  { field: "id", headerName: "ID", width: 90 },
-  {
-    field: "firstName",
-    headerName: "First name",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "lastName",
-    headerName: "Last name",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "age",
-    headerName: "Age",
-    type: "number",
-    width: 110,
-    editable: true,
-  },
+  { field: "_id", headerName: "ID", width: 90 },
+  { field: "firstName", headerName: "First name", width: 150 },
+  { field: "lastName", headerName: "Last name", width: 150 },
+  { field: "age", headerName: "Age", type: "number", width: 110 },
   {
     field: "fullName",
     headerName: "Full name",
-    description: "This column has a value getter and is not sortable.",
     sortable: false,
     width: 160,
-    valueGetter: (value, row) => `${row.firstName || ""} ${row.lastName || ""}`,
+    valueGetter: (_, row) =>
+      `${row.firstName || ""} ${row.lastName || ""}`.trim(),
+  },
+  { field: "email", headerName: "Email", width: 200 },
+  {
+    field: "role",
+    headerName: "Role",
+    width: 120,
+    valueGetter: (_, row) =>
+      row.type ? row.type.charAt(0).toUpperCase() + row.type.slice(1) : "",
   },
 ];
 
-const rows = [
-  { id: 1, lastName: "Snow", firstName: "Jon", age: 14 },
-  { id: 2, lastName: "Lannister", firstName: "Cersei", age: 31 },
-  { id: 3, lastName: "Lannister", firstName: "Jaime", age: 31 },
-  { id: 4, lastName: "Stark", firstName: "Arya", age: 11 },
-  { id: 5, lastName: "Targaryen", firstName: "Daenerys", age: null },
-  { id: 6, lastName: "Melisandre", firstName: null, age: 150 },
-  { id: 7, lastName: "Clifford", firstName: "Ferrara", age: 44 },
-  { id: 8, lastName: "Frances", firstName: "Rossini", age: 36 },
-  { id: 9, lastName: "Roxie", firstName: "Harvey", age: 65 },
-];
-
 function DashboardPage() {
-  const location = useLocation();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const res = await fetchUsers();
+        setUsers(res.data?.users || []);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        setError("Failed to load user data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUsers();
+  }, []);
+
+  // Stats computed from real data
+  const totalUsers = users.length;
+
+  const averageAge =
+    users.filter((u) => u.age && !isNaN(Number(u.age))).length > 0
+      ? (
+          users.reduce((sum, u) => sum + (Number(u.age) || 0), 0) /
+          users.filter((u) => u.age && !isNaN(Number(u.age))).length
+        ).toFixed(1)
+      : "N/A";
+
+  // Pie chart: users by role
+  const roleCounts = users.reduce((acc, user) => {
+    const role = user.type || "unknown";
+    acc[role] = (acc[role] || 0) + 1;
+    return acc;
+  }, {});
+
+  const pieData = Object.entries(roleCounts).map(([role, count], index) => ({
+    id: index,
+    value: count,
+    label: role.charAt(0).toUpperCase() + role.slice(1),
+  }));
+
+  // Bar chart: users by gender
+  const genderCounts = users.reduce((acc, user) => {
+    const gender = user.gender || "unknown";
+    acc[gender] = (acc[gender] || 0) + 1;
+    return acc;
+  }, {});
+
+  const genderLabels = Object.keys(genderCounts).map(
+    (g) => g.charAt(0).toUpperCase() + g.slice(1),
+  );
+  const genderValues = Object.values(genderCounts);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mt: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
 
   return (
     <>
@@ -65,17 +117,20 @@ function DashboardPage() {
         <Card>
           <CardContent>
             <Typography variant="h6">Total Users</Typography>
-            <Typography variant="h4">{rows.length}</Typography>
+            <Typography variant="h4">{totalUsers}</Typography>
           </CardContent>
         </Card>
         <Card>
           <CardContent>
             <Typography variant="h6">Average Age</Typography>
+            <Typography variant="h4">{averageAge}</Typography>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6">Active Users</Typography>
             <Typography variant="h4">
-              {(
-                rows.reduce((sum, row) => sum + (row.age || 0), 0) /
-                rows.filter((row) => row.age !== null).length
-              ).toFixed(1)}
+              {users.filter((u) => u.isActive).length}
             </Typography>
           </CardContent>
         </Card>
@@ -83,34 +138,17 @@ function DashboardPage() {
 
       {/* Charts */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ mb: 4 }}>
+        {/* Bar Chart: Users by Gender */}
         <BarChart
-          series={[
-            { data: [35, 44, 24, 34], label: "Series 1" },
-            { data: [51, 6, 49, 30], label: "Series 2" },
-          ]}
+          series={[{ data: genderValues, label: "Users by Gender" }]}
           height={290}
-          xAxis={[
-            {
-              data: ["Q1", "Q2", "Q3", "Q4"],
-              scaleType: "band",
-              label: "Quarters",
-            },
-          ]}
-          title="Quarterly Sales"
+          xAxis={[{ data: genderLabels, scaleType: "band", label: "Gender" }]}
         />
-        <PieChart
-          series={[
-            {
-              data: [
-                { id: 0, value: 10, label: "series A" },
-                { id: 1, value: 15, label: "series B" },
-                { id: 2, value: 20, label: "series C" },
-              ],
-            },
-          ]}
-          width={400}
-          height={200}
-        />
+
+        {/* Pie Chart: Users by Role */}
+        {pieData.length > 0 && (
+          <PieChart series={[{ data: pieData }]} width={400} height={200} />
+        )}
       </Stack>
 
       {/* Data Grid */}
@@ -119,17 +157,13 @@ function DashboardPage() {
       </Typography>
       <Box sx={{ height: 400, width: "100%", mb: 2 }}>
         <DataGrid
-          rows={rows}
+          rows={users}
           columns={columns}
-          experimentalFeatures={{ newEditingApi: true }}
+          getRowId={(row) => row._id}
           initialState={{
-            pagination: {
-              paginationModel: {
-                pageSize: 5,
-              },
-            },
+            pagination: { paginationModel: { pageSize: 5 } },
           }}
-          pageSizeOptions={[5]}
+          pageSizeOptions={[5, 10]}
           checkboxSelection
           disableRowSelectionOnClick
         />

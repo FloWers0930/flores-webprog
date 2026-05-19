@@ -56,17 +56,18 @@ const loginUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // NEW: Viewers cannot log in
+    // Enhancement 1: Viewers cannot log in
     if (user.type === "viewer") {
       return res.status(403).json({
         message: "Viewer accounts cannot log in. Please contact administrator.",
       });
     }
 
+    // Enhancement 1: Inactive accounts cannot log in
     if (!user.isActive) {
-      return res
-        .status(403)
-        .json({ message: "Your account is inactive. Please contact support." });
+      return res.status(403).json({
+        message: "Your account is inactive. Please contact support.",
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -90,4 +91,5 @@ const loginUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 module.exports = { getUsers, createUser, updateUser, deleteUser, loginUser };

@@ -13,6 +13,8 @@ import {
   MenuItem,
   Chip,
   InputAdornment,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Search as SearchIcon } from "@mui/icons-material";
@@ -35,19 +37,31 @@ const statusLabel = (status) => {
   return "Draft";
 };
 
+const blankForm = {
+  title: "",
+  slug: "",
+  preview: "",
+  paragraph: "",
+  status: "draft",
+};
+
 const DashArticleListPage = () => {
   const [articles, setArticles] = useState([]);
   const [modal, setModal] = useState({ open: false, isEdit: false, id: null });
-  const [form, setForm] = useState({
-    title: "",
-    slug: "",
-    preview: "",
-    paragraph: "",
-    status: "draft",
-  });
+  const [form, setForm] = useState(blankForm);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   useEffect(() => {
     loadArticles();
@@ -60,6 +74,7 @@ const DashArticleListPage = () => {
       setArticles(res.data?.articles || []);
     } catch (err) {
       console.error("Failed to fetch articles:", err);
+      showSnackbar("Failed to load articles.", "error");
       setArticles([]);
     } finally {
       setLoading(false);
@@ -77,27 +92,39 @@ const DashArticleListPage = () => {
             paragraph: article.paragraph || "",
             status: article.status || "draft",
           }
-        : { title: "", slug: "", preview: "", paragraph: "", status: "draft" },
+        : { ...blankForm },
     );
   };
 
-  const closeModal = () => setModal({ open: false, isEdit: false, id: null });
+  const closeModal = () => {
+    setModal({ open: false, isEdit: false, id: null });
+    setForm(blankForm);
+  };
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async () => {
+    if (!form.title.trim() || !form.slug.trim()) {
+      showSnackbar("Title and Slug are required.", "error");
+      return;
+    }
+
     try {
-      if (modal.isEdit) await updateArticle(modal.id, form);
-      else await createArticle(form);
+      if (modal.isEdit) {
+        await updateArticle(modal.id, form);
+        showSnackbar("Article updated successfully!");
+      } else {
+        await createArticle(form);
+        showSnackbar("Article created successfully!");
+      }
       await loadArticles();
       closeModal();
-      alert("Success!");
     } catch (err) {
       const message =
         err.response?.data?.message || err.message || "Unknown error";
-      alert("Failed to save article: " + message);
+      showSnackbar("Failed to save article: " + message, "error");
       console.error("Save error:", err.response?.data || err);
     }
   };
@@ -107,11 +134,15 @@ const DashArticleListPage = () => {
       article.status === "published" ? "archived" : "published";
     try {
       await updateArticle(article._id, { ...article, status: nextStatus });
+      showSnackbar(
+        `Article ${nextStatus === "published" ? "enabled" : "disabled"}.`,
+      );
       await loadArticles();
     } catch (err) {
-      alert(
+      showSnackbar(
         "Failed to update status: " +
           (err.response?.data?.message || err.message),
+        "error",
       );
     }
   };
@@ -120,7 +151,8 @@ const DashArticleListPage = () => {
     return articles.filter((article) => {
       const matchesSearch =
         !searchQuery ||
-        article.title?.toLowerCase().includes(searchQuery.toLowerCase());
+        article.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.slug?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         filterStatus === "All" || article.status === filterStatus.toLowerCase();
       return matchesSearch && matchesStatus;
@@ -155,8 +187,9 @@ const DashArticleListPage = () => {
       field: "actions",
       headerName: "Actions",
       width: 180,
+      sortable: false,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ py: 0.5 }}>
           <Button
             size="small"
             variant="outlined"
@@ -179,7 +212,7 @@ const DashArticleListPage = () => {
 
   return (
     <Box p={3}>
-      {/* Row 1: Title + Add Button */}
+      {/* Header */}
       <Stack
         direction="row"
         sx={{ justifyContent: "space-between", alignItems: "center" }}
@@ -193,7 +226,7 @@ const DashArticleListPage = () => {
         </Button>
       </Stack>
 
-      {/* Row 2: Search + Status Filter */}
+      {/* Search + Filter */}
       <Stack direction="row" spacing={2} mb={2} sx={{ alignItems: "center" }}>
         <TextField
           placeholder="Search Articles"
@@ -237,10 +270,15 @@ const DashArticleListPage = () => {
           initialState={{
             pagination: { paginationModel: { pageSize: 10 } },
           }}
+          sx={{
+            "& .MuiDataGrid-cell, & .MuiDataGrid-columnHeader": {
+              outline: "none",
+            },
+          }}
         />
       </Paper>
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       <Dialog open={modal.open} onClose={closeModal} maxWidth="md" fullWidth>
         <DialogTitle>
           {modal.isEdit ? "Edit Article" : "New Article"}
@@ -253,6 +291,7 @@ const DashArticleListPage = () => {
               fullWidth
               value={form.title}
               onChange={handleChange}
+              required
             />
             <TextField
               label="Slug"
@@ -260,6 +299,7 @@ const DashArticleListPage = () => {
               fullWidth
               value={form.slug}
               onChange={handleChange}
+              required
             />
             <TextField
               label="Preview"
@@ -278,6 +318,7 @@ const DashArticleListPage = () => {
               onChange={handleChange}
               multiline
               rows={5}
+              helperText="Each line break counts as a paragraph."
             />
             <TextField
               select
@@ -296,12 +337,29 @@ const DashArticleListPage = () => {
         <DialogActions>
           <Button onClick={closeModal}>Cancel</Button>
           <Button variant="contained" onClick={handleSubmit}>
-            Save
+            {modal.isEdit ? "Update" : "Save"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar Feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
 export default DashArticleListPage;
+  

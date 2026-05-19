@@ -12,6 +12,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -23,36 +24,63 @@ const SignUpPage = () => {
     username: "",
     password: "",
     address: "",
-    // type will default to "editor" from backend
+    type: "viewer", // Enhancement 3: self-registered users default to viewer
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Enhancement 3: Client-side validation
+  const validate = () => {
+    if (formData.password.length < 8) {
+      return "Password must be at least 8 characters.";
+    }
+    if (!/^\d{11}$/.test(formData.contactNumber.replace(/\D/g, ""))) {
+      return "Contact number must be exactly 11 digits.";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return "Enter a valid email address.";
+    }
+    if (/\s/.test(formData.username)) {
+      return "Username must not contain spaces.";
+    }
+    if (
+      !/^\d+$/.test(formData.age) ||
+      parseInt(formData.age) < 1 ||
+      parseInt(formData.age) > 150
+    ) {
+      return "Age must be a valid number between 1 and 150.";
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setSuccess("");
+
+    // Run validation before hitting the API
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await createUser(formData);
 
-      alert(
-        "✅ Account created successfully! Please log in with your credentials.",
-      );
-      navigate("/auth/signin");
+      // Enhancement 3: Show inline success then redirect
+      setSuccess("Account created successfully! Redirecting to login...");
+      setTimeout(() => navigate("/auth/signin"), 1500);
     } catch (err) {
       console.error(err);
-
       const errorMsg =
         err.response?.data?.message ||
         err.response?.data?.error ||
         "Failed to create account. Please try again.";
-
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -68,9 +96,17 @@ const SignUpPage = () => {
         Create your account to get started.
       </p>
 
+      {/* Error Message */}
       {error && (
         <p className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
           {error}
+        </p>
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <p className="mt-4 p-3 bg-green-50 text-green-600 text-sm rounded-xl">
+          {success}
         </p>
       )}
 
@@ -126,6 +162,7 @@ const SignUpPage = () => {
               required
               value={formData.age}
               onChange={handleChange}
+              placeholder="e.g. 21"
               className={inputClasses}
             />
           </div>
@@ -145,9 +182,9 @@ const SignUpPage = () => {
               className={inputClasses}
             >
               <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
             </select>
           </div>
         </div>
@@ -167,6 +204,7 @@ const SignUpPage = () => {
             required
             value={formData.contactNumber}
             onChange={handleChange}
+            placeholder="09171234567"
             className={inputClasses}
           />
         </div>
@@ -204,6 +242,7 @@ const SignUpPage = () => {
               required
               value={formData.username}
               onChange={handleChange}
+              placeholder="No spaces allowed"
               className={inputClasses}
             />
           </div>

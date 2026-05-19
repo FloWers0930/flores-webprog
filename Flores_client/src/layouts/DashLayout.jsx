@@ -20,6 +20,7 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PeopleIcon from "@mui/icons-material/People";
+import ArticleIcon from "@mui/icons-material/Article"; // ← ADDED
 import Button from "@mui/material/Button";
 
 const drawerWidth = 260;
@@ -53,6 +54,13 @@ const dashboardNavItems = [
     title: "Users",
     to: "/dashboard/users",
     icon: PeopleIcon,
+  },
+  // ← ADDED
+  {
+    label: "Articles",
+    title: "Articles",
+    to: "/dashboard/articles",
+    icon: ArticleIcon,
   },
 ];
 
@@ -138,15 +146,11 @@ const DashLayout = () => {
   const pageTitle = getPageTitle(location.pathname);
   const navigate = useNavigate();
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  const handleDrawerOpen = () => setOpen(true);
+  const handleDrawerClose = () => setOpen(false);
 
   const handleLogout = () => {
+    localStorage.clear();
     navigate("/");
   };
 

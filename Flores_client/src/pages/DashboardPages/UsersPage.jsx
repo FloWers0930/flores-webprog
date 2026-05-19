@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Stack,
@@ -49,6 +50,15 @@ const blankForm = {
 const UsersPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
+
+  // Enhancement 1: Redirect editors away from UsersPage
+  useEffect(() => {
+    const userType = localStorage.getItem("type");
+    if (userType === "editor") {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const [users, setUsers] = useState(usersData);
   const [modal, setModal] = useState({ open: false, id: null });
@@ -91,13 +101,11 @@ const UsersPage = () => {
     }
   };
 
-  // Enhanced Validation
   const validate = () => {
     const nextErrors = {};
     const email = form.email.trim().toLowerCase();
     const username = form.username.trim().toLowerCase();
 
-    // Required fields
     [
       ["firstName", "First name"],
       ["lastName", "Last name"],
@@ -107,7 +115,7 @@ const UsersPage = () => {
       ["email", "Email"],
       ["role", "Role"],
       ["username", "Username"],
-      ["password", modal.id ? null : "Password"], // Password required only for new users
+      ["password", modal.id ? null : "Password"],
       ["address", "Address"],
     ].forEach(([key, label]) => {
       if (label && !String(form[key] ?? "").trim()) {
@@ -115,12 +123,10 @@ const UsersPage = () => {
       }
     });
 
-    // Email validation
     if (!nextErrors.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       nextErrors.email = "Enter a valid email address.";
     }
 
-    // Email uniqueness
     if (
       !nextErrors.email &&
       users.some((user) => user.id !== modal.id && user.email === email)
@@ -128,7 +134,6 @@ const UsersPage = () => {
       nextErrors.email = "Email address already exists.";
     }
 
-    // Username uniqueness
     if (
       !nextErrors.username &&
       users.some((user) => user.id !== modal.id && user.username === username)
@@ -136,13 +141,10 @@ const UsersPage = () => {
       nextErrors.username = "Username already exists.";
     }
 
-    // Enhancement 3: Specific validation rules
-    // Password must be at least 8 characters
     if (!modal.id && form.password && form.password.length < 8) {
       nextErrors.password = "Password must be at least 8 characters.";
     }
 
-    // Contact number must be 11 digits
     if (
       form.contactNumber &&
       !/^\d{11}$/.test(form.contactNumber.replace(/\D/g, ""))
@@ -150,7 +152,6 @@ const UsersPage = () => {
       nextErrors.contactNumber = "Contact number must be exactly 11 digits.";
     }
 
-    // Age must be a number only
     if (
       form.age &&
       (!/^\d+$/.test(form.age) ||
@@ -160,7 +161,6 @@ const UsersPage = () => {
       nextErrors.age = "Age must be a valid number between 1 and 150.";
     }
 
-    // Username must not contain spaces
     if (form.username && /\s/.test(form.username)) {
       nextErrors.username = "Username must not contain spaces.";
     }
@@ -220,7 +220,6 @@ const UsersPage = () => {
     );
   };
 
-  // Enhancement 2: Search and Filter Logic
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const searchLower = searchQuery.toLowerCase();
@@ -341,10 +340,9 @@ const UsersPage = () => {
         </Button>
       </Stack>
 
-      {/* Enhancement 2: Search and Filter Section */}
+      {/* Search and Filter Section */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack spacing={2}>
-          {/* Search Bar */}
           <TextField
             fullWidth
             placeholder="Search by first name, last name, email, or username..."
@@ -360,7 +358,6 @@ const UsersPage = () => {
             size="small"
           />
 
-          {/* Filter Toggle */}
           <Button
             startIcon={<FilterIcon />}
             onClick={() => setShowFilters(!showFilters)}
@@ -370,7 +367,6 @@ const UsersPage = () => {
             {showFilters ? "Hide Filters" : "Show Filters"}
           </Button>
 
-          {/* Filter Dropdowns */}
           {showFilters && (
             <Stack
               direction={{ xs: "column", sm: "row" }}
