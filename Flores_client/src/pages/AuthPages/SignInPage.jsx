@@ -25,26 +25,19 @@ const SignInPage = () => {
 
       // Save authentication data
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("userType", response.data.type);
+      localStorage.setItem("type", response.data.type); // ← fixed key
       localStorage.setItem("firstName", response.data.firstName);
 
-      alert(`Login successful! Welcome, ${response.data.firstName} 🎉`);
-
-      // Role-based redirection (Enhancement 1)
-      if (response.data.type === "admin") {
-        navigate("/users"); // Only Admin can go to UsersPage
-      } else {
-        navigate("/dashboard"); // Editors go to Dashboard
-      }
+      // All roles go to dashboard
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       const errorMessage =
         err.response?.data?.message || "Invalid email or password";
       setError(errorMessage);
 
-      // Optional: Clear fields on certain errors
       if (errorMessage.includes("Viewer")) {
-        setPassword(""); // Clear password for security
+        setPassword("");
       }
     } finally {
       setLoading(false);
