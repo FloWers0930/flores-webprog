@@ -23,22 +23,16 @@ const SignInPage = () => {
     try {
       const response = await loginUser({ email, password });
 
-      // Save authentication data
+      // Save authentication data — no type/role needed
       localStorage.setItem("token", response.data.token);
-      localStorage.setItem("type", response.data.type); // ← fixed key
       localStorage.setItem("firstName", response.data.firstName);
 
-      // All roles go to dashboard
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
       const errorMessage =
-        err.response?.data?.message || "Invalid email or password";
+        err.response?.data?.message || "Invalid email or password.";
       setError(errorMessage);
-
-      if (errorMessage.includes("Viewer")) {
-        setPassword("");
-      }
     } finally {
       setLoading(false);
     }
@@ -72,7 +66,7 @@ const SignInPage = () => {
           <input
             id="signin-email"
             type="email"
-            placeholder="Placeholder"
+            placeholder="you@example.com"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -92,7 +86,7 @@ const SignInPage = () => {
           <input
             id="signin-password"
             type="password"
-            placeholder="Placeholder"
+            placeholder="••••••••"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

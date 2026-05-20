@@ -24,34 +24,39 @@ const SignUpPage = () => {
     username: "",
     password: "",
     address: "",
-    type: "viewer", // Enhancement 3: self-registered users default to viewer
+    type: "viewer", // all self-registered users default to viewer
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  // Enhancement 3: Client-side validation
   const validate = () => {
-    if (formData.password.length < 8) {
-      return "Password must be at least 8 characters.";
-    }
-    if (!/^\d{11}$/.test(formData.contactNumber.replace(/\D/g, ""))) {
-      return "Contact number must be exactly 11 digits.";
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      return "Enter a valid email address.";
-    }
-    if (/\s/.test(formData.username)) {
-      return "Username must not contain spaces.";
-    }
+    if (!formData.firstName.trim()) return "First name is required.";
+    if (!formData.lastName.trim()) return "Last name is required.";
     if (
+      !formData.age ||
       !/^\d+$/.test(formData.age) ||
       parseInt(formData.age) < 1 ||
       parseInt(formData.age) > 150
     ) {
       return "Age must be a valid number between 1 and 150.";
     }
+    if (!formData.gender) return "Please select a gender.";
+    if (!/^\d{11}$/.test(formData.contactNumber.replace(/\D/g, ""))) {
+      return "Contact number must be exactly 11 digits.";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return "Enter a valid email address.";
+    }
+    if (!formData.username.trim()) return "Username is required.";
+    if (/\s/.test(formData.username))
+      return "Username must not contain spaces.";
+    if (formData.password.length < 8) {
+      return "Password must be at least 8 characters.";
+    }
+    if (!formData.address.trim()) return "Address is required.";
     return null;
   };
 
@@ -60,7 +65,6 @@ const SignUpPage = () => {
     setError("");
     setSuccess("");
 
-    // Run validation before hitting the API
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -70,9 +74,20 @@ const SignUpPage = () => {
     setLoading(true);
 
     try {
-      await createUser(formData);
+      await createUser({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        age: String(formData.age).trim(),
+        gender: formData.gender.toLowerCase(),
+        contactNumber: formData.contactNumber.replace(/\D/g, "").trim(),
+        email: formData.email.trim().toLowerCase(),
+        username: formData.username.trim().toLowerCase(),
+        password: formData.password,
+        address: formData.address.trim(),
+        type: "viewer",
+        isActive: true,
+      });
 
-      // Enhancement 3: Show inline success then redirect
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/auth/signin"), 1500);
     } catch (err) {
@@ -158,8 +173,10 @@ const SignUpPage = () => {
             <input
               id="age"
               name="age"
-              type="text"
+              type="number"
               required
+              min={1}
+              max={150}
               value={formData.age}
               onChange={handleChange}
               placeholder="e.g. 21"
@@ -202,6 +219,7 @@ const SignUpPage = () => {
             name="contactNumber"
             type="tel"
             required
+            maxLength={11}
             value={formData.contactNumber}
             onChange={handleChange}
             placeholder="09171234567"
@@ -225,6 +243,7 @@ const SignUpPage = () => {
               required
               value={formData.email}
               onChange={handleChange}
+              placeholder="you@example.com"
               className={inputClasses}
             />
           </div>
@@ -263,6 +282,7 @@ const SignUpPage = () => {
             required
             value={formData.password}
             onChange={handleChange}
+            placeholder="••••••••"
             className={inputClasses}
           />
           <p className="mt-2 text-xs leading-5 text-[#8a9a8a]">
@@ -299,7 +319,7 @@ const SignUpPage = () => {
           {loading ? "Creating Account..." : "Create Account"}
         </Button>
 
-        {/* Social Login - Optional */}
+        {/* Social Login */}
         <div className="grid gap-3 pt-2 sm:grid-cols-2">
           <Button
             type="button"

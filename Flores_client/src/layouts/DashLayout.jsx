@@ -10,17 +10,17 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PeopleIcon from "@mui/icons-material/People";
-import ArticleIcon from "@mui/icons-material/Article"; // ← ADDED
+import ArticleIcon from "@mui/icons-material/Article";
 import Button from "@mui/material/Button";
 
 const drawerWidth = 260;
@@ -36,6 +36,7 @@ const colors = {
   hover: "#E8EBE8",
 };
 
+// All nav items visible to every authenticated user — no role filtering
 const dashboardNavItems = [
   {
     label: "Dashboard",
@@ -50,17 +51,16 @@ const dashboardNavItems = [
     icon: AssessmentIcon,
   },
   {
-    label: "Users",
-    title: "Users",
-    to: "/dashboard/users",
-    icon: PeopleIcon,
-  },
-  // ← ADDED
-  {
     label: "Articles",
     title: "Articles",
     to: "/dashboard/articles",
     icon: ArticleIcon,
+  },
+  {
+    label: "Users",
+    title: "Users",
+    to: "/dashboard/users",
+    icon: PeopleIcon,
   },
 ];
 
@@ -143,8 +143,10 @@ const DashLayout = () => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
   const location = useLocation();
-  const pageTitle = getPageTitle(location.pathname);
   const navigate = useNavigate();
+
+  const pageTitle = getPageTitle(location.pathname);
+  const firstName = localStorage.getItem("firstName") || "User";
 
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
@@ -187,6 +189,18 @@ const DashLayout = () => {
             }}
           >
             {pageTitle}
+          </Typography>
+
+          {/* Greeting */}
+          <Typography
+            variant="body2"
+            sx={{
+              color: colors.textMuted,
+              mr: 2,
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            Hello, {firstName}
           </Typography>
 
           <Button

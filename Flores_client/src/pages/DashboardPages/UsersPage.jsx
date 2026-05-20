@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Stack,
@@ -18,6 +17,8 @@ import {
   IconButton,
   Chip,
   Alert,
+  Snackbar,
+  CircularProgress,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -28,10 +29,10 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon,
 } from "@mui/icons-material";
-import usersData from "../../data/users.json";
+import { fetchUsers, createUser, updateUser } from "../../services/UserService";
 
 const genders = ["male", "female", "other"];
-const roles = ["admin", "editor", "viewer"];
+const roles = ["editor", "viewer"];
 
 const blankForm = {
   firstName: "",
@@ -40,7 +41,7 @@ const blankForm = {
   gender: "",
   contactNumber: "",
   email: "",
-  role: "",
+  type: "",
   username: "",
   password: "",
   address: "",
@@ -50,28 +51,46 @@ const blankForm = {
 const UsersPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const navigate = useNavigate();
 
-  // Enhancement 1: Redirect editors away from UsersPage
-  useEffect(() => {
-    const userType = localStorage.getItem("type");
-    if (userType === "editor") {
-      navigate("/dashboard");
-    }
-  }, [navigate]);
-
-  const [users, setUsers] = useState(usersData);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(blankForm);
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  // Search and Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [filterGender, setFilterGender] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchUsers();
+      setUsers(res.data?.users || []);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+      showSnackbar("Failed to load users.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const resetForm = () => {
     setForm({ ...blankForm });
@@ -79,8 +98,24 @@ const UsersPage = () => {
   };
 
   const openModal = (user) => {
-    setModal({ open: true, id: user?.id ?? null });
-    setForm(user ? { ...blankForm, ...user } : { ...blankForm });
+    setModal({ open: true, id: user?._id ?? null });
+    setForm(
+      user
+        ? {
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            age: user.age || "",
+            gender: user.gender || "",
+            contactNumber: user.contactNumber || "",
+            email: user.email || "",
+            type: user.type || "",
+            username: user.username || "",
+            password: "",
+            address: user.address || "",
+            isActive: user.isActive ?? true,
+          }
+        : { ...blankForm },
+    );
     setErrors({});
   };
 
@@ -95,7 +130,6 @@ const UsersPage = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -113,12 +147,12 @@ const UsersPage = () => {
       ["gender", "Gender"],
       ["contactNumber", "Contact number"],
       ["email", "Email"],
-      ["role", "Role"],
+      ["type", "Role"],
       ["username", "Username"],
-      ["password", modal.id ? null : "Password"],
+      [modal.id ? null : "password", "Password"],
       ["address", "Address"],
     ].forEach(([key, label]) => {
-      if (label && !String(form[key] ?? "").trim()) {
+      if (key && label && !String(form[key] ?? "").trim()) {
         nextErrors[key] = `${label} is required.`;
       }
     });
@@ -127,18 +161,18 @@ const UsersPage = () => {
       nextErrors.email = "Enter a valid email address.";
     }
 
-    if (
-      !nextErrors.email &&
-      users.some((user) => user.id !== modal.id && user.email === email)
-    ) {
-      nextErrors.email = "Email address already exists.";
+    if (!nextErrors.email) {
+      const duplicate = users.find(
+        (u) => u._id !== modal.id && u.email.toLowerCase() === email,
+      );
+      if (duplicate) nextErrors.email = "Email address already exists.";
     }
 
-    if (
-      !nextErrors.username &&
-      users.some((user) => user.id !== modal.id && user.username === username)
-    ) {
-      nextErrors.username = "Username already exists.";
+    if (!nextErrors.username) {
+      const duplicate = users.find(
+        (u) => u._id !== modal.id && u.username.toLowerCase() === username,
+      );
+      if (duplicate) nextErrors.username = "Username already exists.";
     }
 
     if (!modal.id && form.password && form.password.length < 8) {
@@ -154,7 +188,7 @@ const UsersPage = () => {
 
     if (
       form.age &&
-      (!/^\d+$/.test(form.age) ||
+      (!/^\d+$/.test(String(form.age)) ||
         parseInt(form.age) < 1 ||
         parseInt(form.age) > 150)
     ) {
@@ -168,7 +202,7 @@ const UsersPage = () => {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
 
@@ -177,60 +211,78 @@ const UsersPage = () => {
       return;
     }
 
-    const nextUser = {
+    const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       age: String(form.age).trim(),
       gender: form.gender.trim().toLowerCase(),
       contactNumber: form.contactNumber.replace(/\D/g, "").trim(),
       email: form.email.trim().toLowerCase(),
-      role: form.role.trim().toLowerCase(),
+      type: form.type.trim().toLowerCase(),
       username: form.username.trim().toLowerCase(),
-      password: form.password.trim(),
       address: form.address.trim(),
       isActive: form.isActive,
     };
 
-    setUsers((prev) =>
-      modal.id
-        ? prev.map((user) =>
-            user.id === modal.id ? { ...user, ...nextUser } : user,
-          )
-        : [
-            ...prev,
-            {
-              ...nextUser,
-              id:
-                prev.reduce(
-                  (max, user) => Math.max(max, Number(user.id) || 0),
-                  0,
-                ) + 1,
-            },
-          ],
-    );
+    if (form.password.trim()) {
+      payload.password = form.password.trim();
+    }
 
-    closeModal();
+    try {
+      setSaving(true);
+      if (modal.id) {
+        await updateUser(modal.id, payload);
+        showSnackbar("User updated successfully!");
+      } else {
+        await createUser(payload);
+        showSnackbar("User created successfully!");
+      }
+      await loadUsers();
+      closeModal();
+    } catch (err) {
+      const message =
+        err.response?.data?.message || err.message || "Unknown error";
+      showSnackbar("Failed to save user: " + message, "error");
+      console.error("Save error:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const toggleStatus = (id) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, isActive: !user.isActive } : user,
-      ),
-    );
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      await updateUser(id, { isActive: !currentStatus });
+      showSnackbar(
+        `User ${!currentStatus ? "activated" : "disabled"} successfully!`,
+      );
+      await loadUsers();
+    } catch (err) {
+      showSnackbar("Failed to update user status.", "error");
+      console.error("Toggle error:", err);
+    }
   };
+
+  const clearFilters = () => {
+    setFilterRole("");
+    setFilterGender("");
+    setFilterStatus("");
+    setSearchQuery("");
+  };
+
+  const hasActiveFilters =
+    filterRole || filterGender || filterStatus || searchQuery;
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
-        user.firstName.toLowerCase().includes(searchLower) ||
-        user.lastName.toLowerCase().includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower) ||
-        user.username.toLowerCase().includes(searchLower);
+        user.firstName?.toLowerCase().includes(searchLower) ||
+        user.lastName?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.username?.toLowerCase().includes(searchLower);
 
-      const matchesRole = !filterRole || user.role === filterRole;
+      const matchesRole = !filterRole || user.type === filterRole;
       const matchesGender = !filterGender || user.gender === filterGender;
       const matchesStatus =
         filterStatus === "" ||
@@ -253,7 +305,6 @@ const UsersPage = () => {
   });
 
   const columns = [
-    { field: "id", headerName: "ID", width: 80 },
     {
       field: "fullName",
       headerName: "Full Name",
@@ -262,27 +313,35 @@ const UsersPage = () => {
       valueGetter: (_, row) => `${row.firstName} ${row.lastName}`.trim(),
     },
     { field: "username", headerName: "Username", minWidth: 130 },
-    { field: "age", headerName: "Age", width: 80 },
+    { field: "age", headerName: "Age", width: 70 },
     {
       field: "gender",
       headerName: "Gender",
-      minWidth: 110,
+      minWidth: 100,
       valueGetter: (_, row) =>
-        row.gender.charAt(0).toUpperCase() + row.gender.slice(1),
+        row.gender
+          ? row.gender.charAt(0).toUpperCase() + row.gender.slice(1)
+          : "",
     },
-    { field: "contactNumber", headerName: "Contact Number", minWidth: 150 },
+    { field: "contactNumber", headerName: "Contact No.", minWidth: 140 },
     { field: "email", headerName: "Email", flex: 1.1, minWidth: 170 },
     {
-      field: "role",
+      field: "type",
       headerName: "Role",
-      minWidth: 120,
+      minWidth: 110,
       valueGetter: (_, row) =>
-        row.role.charAt(0).toUpperCase() + row.role.slice(1),
+        row.type ? row.type.charAt(0).toUpperCase() + row.type.slice(1) : "",
+    },
+    {
+      field: "address",
+      headerName: "Address",
+      flex: 1,
+      minWidth: 160,
     },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 120,
+      minWidth: 110,
       sortable: false,
       renderCell: ({ row }) => (
         <Chip
@@ -296,7 +355,7 @@ const UsersPage = () => {
     {
       field: "actions",
       headerName: "Actions",
-      minWidth: 220,
+      minWidth: 200,
       sortable: false,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={1} sx={{ py: 0.5 }}>
@@ -311,7 +370,7 @@ const UsersPage = () => {
             size="small"
             variant="contained"
             color={row.isActive ? "warning" : "success"}
-            onClick={() => toggleStatus(row.id)}
+            onClick={() => toggleStatus(row._id, row.isActive)}
           >
             {row.isActive ? "Disable" : "Activate"}
           </Button>
@@ -320,9 +379,17 @@ const UsersPage = () => {
     },
   ];
 
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
-      {/* Header Section */}
+      {/* Header */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
@@ -330,7 +397,13 @@ const UsersPage = () => {
         spacing={2}
         sx={{ mb: 3 }}
       >
-        <Typography variant="h4">Users</Typography>
+        <Box>
+          <Typography variant="h4">Users</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {users.length} total user{users.length !== 1 ? "s" : ""}
+            {hasActiveFilters ? ` · ${filteredUsers.length} shown` : ""}
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           onClick={() => openModal()}
@@ -340,7 +413,7 @@ const UsersPage = () => {
         </Button>
       </Stack>
 
-      {/* Search and Filter Section */}
+      {/* Search & Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack spacing={2}>
           <TextField
@@ -358,14 +431,21 @@ const UsersPage = () => {
             size="small"
           />
 
-          <Button
-            startIcon={<FilterIcon />}
-            onClick={() => setShowFilters(!showFilters)}
-            size="small"
-            sx={{ alignSelf: "flex-start" }}
-          >
-            {showFilters ? "Hide Filters" : "Show Filters"}
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button
+              startIcon={<FilterIcon />}
+              onClick={() => setShowFilters(!showFilters)}
+              size="small"
+              variant={showFilters ? "contained" : "outlined"}
+            >
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+            {hasActiveFilters && (
+              <Button size="small" color="error" onClick={clearFilters}>
+                Clear All
+              </Button>
+            )}
+          </Stack>
 
           {showFilters && (
             <Stack
@@ -421,12 +501,8 @@ const UsersPage = () => {
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => {
-                  setFilterRole("");
-                  setFilterGender("");
-                  setFilterStatus("");
-                  setSearchQuery("");
-                }}
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
               >
                 Clear Filters
               </Button>
@@ -435,7 +511,7 @@ const UsersPage = () => {
         </Stack>
       </Paper>
 
-      {/* Users DataGrid */}
+      {/* Data Table */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, minWidth: 0, overflow: "hidden" }}>
         {filteredUsers.length ? (
           <Box
@@ -444,11 +520,12 @@ const UsersPage = () => {
             <DataGrid
               rows={filteredUsers}
               columns={columns}
+              getRowId={(row) => row._id}
               disableRowSelectionOnClick
-              pageSizeOptions={[5, 10]}
+              pageSizeOptions={[5, 10, 25]}
               initialState={{
                 pagination: {
-                  paginationModel: { pageSize: 5, page: 0 },
+                  paginationModel: { pageSize: 10, page: 0 },
                 },
               }}
               sx={{
@@ -461,13 +538,14 @@ const UsersPage = () => {
           </Box>
         ) : (
           <Alert severity="info">
-            No users found. Use Add User to create your first record or adjust
-            your search filters.
+            {hasActiveFilters
+              ? "No users match your current filters. Try adjusting or clearing them."
+              : "No users found. Click Add User to create your first record."}
           </Alert>
         )}
       </Paper>
 
-      {/* Add/Edit User Modal */}
+      {/* Add / Edit Modal */}
       <Dialog
         open={modal.open}
         onClose={closeModal}
@@ -479,13 +557,19 @@ const UsersPage = () => {
           <DialogTitle>{modal.id ? "Edit User" : "Add User"}</DialogTitle>
           <DialogContent dividers sx={{ px: { xs: 2, sm: 3 } }}>
             <Stack spacing={2} sx={{ pt: 1 }}>
+              {/* Name */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField {...fieldProps("firstName", "First Name")} />
                 <TextField {...fieldProps("lastName", "Last Name")} />
               </Stack>
 
+              {/* Age & Gender */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField {...fieldProps("age", "Age")} type="number" />
+                <TextField
+                  {...fieldProps("age", "Age")}
+                  type="number"
+                  inputProps={{ min: 1, max: 150 }}
+                />
                 <TextField
                   {...fieldProps("gender", "Gender", { select: true })}
                 >
@@ -497,27 +581,34 @@ const UsersPage = () => {
                 </TextField>
               </Stack>
 
+              {/* Contact & Email */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField
                   {...fieldProps("contactNumber", "Contact Number")}
                   placeholder="09171234567"
+                  inputProps={{ maxLength: 11 }}
                 />
                 <TextField
                   {...fieldProps("email", "Email Address", { type: "email" })}
                 />
               </Stack>
 
+              {/* Role & Username */}
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField {...fieldProps("role", "Role", { select: true })}>
+                <TextField {...fieldProps("type", "Role", { select: true })}>
                   {roles.map((role) => (
                     <MenuItem key={role} value={role}>
                       {role.charAt(0).toUpperCase() + role.slice(1)}
                     </MenuItem>
                   ))}
                 </TextField>
-                <TextField {...fieldProps("username", "Username")} />
+                <TextField
+                  {...fieldProps("username", "Username")}
+                  inputProps={{ autoComplete: "off" }}
+                />
               </Stack>
 
+              {/* Password */}
               <TextField
                 {...fieldProps(
                   "password",
@@ -533,7 +624,7 @@ const UsersPage = () => {
                             <IconButton
                               edge="end"
                               onClick={() => setShowPassword((prev) => !prev)}
-                              onMouseDown={(event) => event.preventDefault()}
+                              onMouseDown={(e) => e.preventDefault()}
                               aria-label={
                                 showPassword ? "Hide password" : "Show password"
                               }
@@ -552,6 +643,7 @@ const UsersPage = () => {
                 )}
               />
 
+              {/* Address */}
               <TextField
                 {...fieldProps("address", "Address", {
                   multiline: true,
@@ -559,6 +651,7 @@ const UsersPage = () => {
                 })}
               />
 
+              {/* Status Toggle */}
               <FormControlLabel
                 control={
                   <Switch
@@ -576,13 +669,42 @@ const UsersPage = () => {
             </Stack>
           </DialogContent>
           <DialogActions sx={{ px: 3, py: 2 }}>
-            <Button onClick={closeModal}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              {modal.id ? "Update User" : "Save User"}
+            <Button onClick={closeModal} disabled={saving}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={saving}
+              startIcon={saving ? <CircularProgress size={16} /> : null}
+            >
+              {saving
+                ? modal.id
+                  ? "Updating..."
+                  : "Saving..."
+                : modal.id
+                  ? "Update User"
+                  : "Save User"}
             </Button>
           </DialogActions>
         </Box>
       </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

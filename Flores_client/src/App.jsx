@@ -13,8 +13,18 @@ import DashboardPage from "./pages/DashboardPages/DashboardPage";
 import ReportsPage from "./pages/DashboardPages/ReportsPage";
 import UsersPage from "./pages/DashboardPages/UsersPage";
 import DashArticleListPage from "./pages/DashboardPages/DashArticleListPage";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute"; // ← Import this
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
+
+// Simple auth check — just verifies a token exists
+const RequireAuth = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/auth/signin" replace />;
+  return children;
+};
 
 const routes = [
   {
@@ -25,7 +35,7 @@ const routes = [
       { path: "/", element: <HomePage /> },
       { path: "/about", element: <AboutPage /> },
       { path: "/articles", element: <ArticleListPage /> },
-      { path: "/articles/:name", element: <ArticlePage /> },
+      { path: "/articles/:slug", element: <ArticlePage /> },
     ],
   },
   {
@@ -39,23 +49,16 @@ const routes = [
   },
   {
     path: "/dashboard",
-    element: <DashLayout />,
+    element: (
+      <RequireAuth>
+        <DashLayout />
+      </RequireAuth>
+    ),
     errorElement: <NotFoundPage />,
     children: [
       { path: "", element: <DashboardPage /> },
       { path: "reports", element: <ReportsPage /> },
-
-      // ✅ Protected: Only Admin can access UsersPage
-      {
-        path: "users",
-        element: (
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <UsersPage />
-          </ProtectedRoute>
-        ),
-      },
-
-      // Articles - Editors and Admins can access
+      { path: "users", element: <UsersPage /> },
       { path: "articles", element: <DashArticleListPage /> },
     ],
   },
