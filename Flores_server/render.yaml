@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: flores-webprog-server
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: MONGO_URI
+        scope: run,build
+        sync: false
+      - key: JWT_SECRET
+        scope: run,build
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
